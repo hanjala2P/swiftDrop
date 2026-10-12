@@ -28,6 +28,14 @@ const router = createBrowserRouter([
                 element:<PricingCalculator></PricingCalculator>
             },
             {
+                path:'/services',
+                element:<div className="mt-18">
+                    <h2 className="text-2xl font-bold loading-spinner text-gray-700 text-center">this site is now under development</h2>
+                    <h2 className="text-2xl font-bold text-white P-5 bg-primary text-center">this site is now under development</h2>
+                    <Loading></Loading>
+                </div>
+            },
+            {
                 path:'/about',
                 element:<AboutUs></AboutUs>
             },
