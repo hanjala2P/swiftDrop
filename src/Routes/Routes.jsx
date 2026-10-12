@@ -4,12 +4,14 @@ import Layout from "../Layout/Layout";
 import BeARider from "../Pages/Shared/Navbar/Navdata/BeARider";
 import PricingCalculator from "../Pages/Shared/Navbar/Navdata/PricingCalculator";
 import AboutUs from "../Pages/Shared/Navbar/Navdata/AboutUs";
-import CoverageSection from "../Pages/Shared/Navbar/Navdata/CoverageSection";
 import Coverage from "../Pages/Shared/Navbar/Navdata/Coverage";
 import Login from "../Pages/Auth/Login/Login";
 import Register from "../Pages/Auth/Regsiter/Register";
 import Loading from "../Components/Loading/Loading";
 import PrivateRoute from "./PrivateRoute";
+
+
+import serviceCentersData from "../Pages/Shared/Navbar/Navdata/servicesCenter.json";
 
 const router = createBrowserRouter([
     {
@@ -42,7 +44,8 @@ const router = createBrowserRouter([
             {
                 path:'/coverage',
                 element:<Coverage></Coverage>,
-                loader:()=> fetch('/src/Pages/Shared/Navbar/Navdata/servicesCenter.json').then(res => res.json())
+           
+                loader: () => serviceCentersData
             },
             {
                 path:'/login',
@@ -56,10 +59,8 @@ const router = createBrowserRouter([
                 path:'/test',
                 element:<Loading></Loading>
             }
-            
-           
-
         ]
     }
-])
+]);
+
 export default router;
