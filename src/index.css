@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: light, dark;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Outfit:wght@100..900&display=swap');
+
+@theme {
+  --color-primary: #CAEB66;
+  --color-secondary: #0B0B0B;
+  --color-tertiary: #03464D;
+  --color-tertiary2: #03373D;
+  --color-custom-gray: #F4F6F8;
+  
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Figtree', sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6, .btn {
+  font-family: var(--font-heading);
+}
