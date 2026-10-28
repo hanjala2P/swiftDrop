@@ -12,6 +12,8 @@ import PrivateRoute from "./PrivateRoute";
 
 
 import SendAParcel from "../Pages/Shared/Send a percel/SendAParcel";
+import DashboardLayout from "../Layout/DashboardLayout";
+import MyParcels from "../Pages/Dashboard/My-parcels/MyParcels";
 
 const router = createBrowserRouter([
     {
@@ -65,6 +67,16 @@ const router = createBrowserRouter([
                 loader: () =>fetch('/src/Pages/Shared/Navbar/Navdata/servicesCenter.json').then(res => res.json())
             },
 
+        ]
+    },
+    {
+        path:'/dashboard',
+        element:<PrivateRoute><DashboardLayout></DashboardLayout></PrivateRoute>,
+        children:[
+            {
+              path:'my-parcels', 
+              element:<MyParcels></MyParcels>
+            }
         ]
     }
 ]);
