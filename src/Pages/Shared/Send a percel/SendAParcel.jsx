@@ -1,7 +1,24 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useLoaderData } from 'react-router';
 
 const SendAParcel = () => {
-    const [parcelType, setParcelType] = useState('document');
+    const {register,handleSubmit,watch,formState:{errors}}=useForm();
+    const  serviceCenters = useLoaderData();
+    const allRegions = serviceCenters.map(c=>c.region);
+    const regions= [...new Set(allRegions)];
+    const senderRegion = watch('senderRegion')
+
+    const districtByRegion = region=>{
+        const regionDistricts =serviceCenters.filter(c=>c.region === region);
+        const districts= regionDistricts.map(d=>d.district);
+        return districts
+    }
+   
+    
+    const handleSendParcel = data=>{
+        console.log(data)
+    }
 
     return (
         <section className="max-w-7xl mx-auto px-4 py-12">
@@ -18,29 +35,29 @@ const SendAParcel = () => {
                     <div className="w-full border-t border-gray-200 mt-6"></div>
                 </div>
 
-                <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
+                <form onSubmit={handleSubmit(handleSendParcel)} className="space-y-8">
                     
                     {/* Parcel Type Radio Buttons */}
-                    <div className="flex items-center gap-8">
+                    <div className="flex text-gray-600 items-center gap-8">
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input 
                                 type="radio" 
-                                name="parcelType" 
-                                checked={parcelType === 'document'}
-                                onChange={() => setParcelType('document')}
-                                className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                                {...register('parcelType')}
+                                value="document"
+                                defaultChecked
+                               
+                                className="w-4 h-4 "
                             />
-                            <span className="text-sm font-medium text-gray-700">Document</span>
+                            Document
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input 
                                 type="radio" 
-                                name="parcelType" 
-                                checked={parcelType === 'non-document'}
-                                onChange={() => setParcelType('non-document')}
-                                className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                                {...register('parcelType')}
+                                value="non-document"
+                                className="w-4 h-4 "
                             />
-                            <span className="text-sm font-medium text-gray-700">Non-Document</span>
+                            Non-Document
                         </label>
                     </div>
 
@@ -50,6 +67,7 @@ const SendAParcel = () => {
                             <label className="block text-xs font-semibold text-gray-600 mb-1">Parcel Name</label>
                             <input 
                                 type="text" 
+                                {...register('parcelName')}
                                 placeholder="Parcel Name" 
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                             />
@@ -57,7 +75,8 @@ const SendAParcel = () => {
                         <div>
                             <label className="block text-xs font-semibold text-gray-600 mb-1">Parcel Weight (KG)</label>
                             <input 
-                                type="text" 
+                                type="number" 
+                                {...register('parcelWeight')}
                                 placeholder="Parcel Weight (KG)" 
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                             />
@@ -78,6 +97,16 @@ const SendAParcel = () => {
                                 <input 
                                     type="text" 
                                     placeholder="Sender Name" 
+                                    {...register('senderName')}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Sender Email</label>
+                                <input 
+                                    type="email" 
+                                    placeholder="Sender Email" 
+                                    {...register('senderEmail')}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                                 />
                             </div>
@@ -87,6 +116,7 @@ const SendAParcel = () => {
                                 <input 
                                     type="text" 
                                     placeholder="Address" 
+                                          {...register('senderAddress')}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                                 />
                             </div>
@@ -96,18 +126,30 @@ const SendAParcel = () => {
                                 <input 
                                     type="tel" 
                                     placeholder="Sender Phone No" 
+                                          {...register('senderPhoneNo')}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1">Your District</label>
-                                <select className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-500 bg-white">
-                                    <option value="">Select your District</option>
-                                    <option value="dhaka">Dhaka</option>
-                                    <option value="chittagong">Chittagong</option>
-                                    <option value="chandpur">Chandpur</option>
-                                </select>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Sender Region</label>
+                               <select {...register('senderRegion')} className="select w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white" defaultValue="Select your Region">
+                                <option disabled={true}>Pick a  Region</option>
+                                {
+                                    regions.map((r ,i) => <option key={i} value={r}>{r}</option> )
+                                }
+                               </select>
+                          
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Sender District</label>
+                               <select {...register('senderDistrict')} className="select w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white" defaultValue="Select your Region">
+                                <option disabled={true}>Pick a District</option>
+                                {
+                                    districtByRegion(senderRegion).map((r ,i) => <option key={i} value={r}>{r}</option> )
+                                }
+                               </select>
+                               
                             </div>
 
                             <div>
@@ -115,6 +157,7 @@ const SendAParcel = () => {
                                 <textarea 
                                     rows="3"
                                     placeholder="Pickup Instruction" 
+                                    {...register("pickupInstruction")}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white resize-none"
                                 ></textarea>
                             </div>
@@ -123,14 +166,24 @@ const SendAParcel = () => {
                         {/* Receiver Details */}
                         <div className="space-y-4">
                             <h3 className="text-lg font-bold font-heading text-[#0B1E1B]">
-                                Receiver Details
+                               Receiver Details
                             </h3>
 
                             <div>
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Receiver Name</label>
                                 <input 
                                     type="text" 
-                                    placeholder="Sender Name" 
+                                    placeholder="Receiver Name" 
+                                    {...register('receiverName')}
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Receiver Email</label>
+                                <input 
+                                    type="email" 
+                                    placeholder="Receiver Email" 
+                                    {...register('receiverEmail')}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                                 />
                             </div>
@@ -140,34 +193,35 @@ const SendAParcel = () => {
                                 <input 
                                     type="text" 
                                     placeholder="Address" 
+                                          {...register('receiverAddress')}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1">Receiver Contact No</label>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Receiver Phone No</label>
                                 <input 
                                     type="tel" 
-                                    placeholder="Sender Contact No" 
+                                    placeholder="Sender Phone No" 
+                                          {...register('receiverPhoneNo')}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Receiver District</label>
-                                <select className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-500 bg-white">
-                                    <option value="">Select your District</option>
-                                    <option value="dhaka">Dhaka</option>
-                                    <option value="chittagong">Chittagong</option>
-                                    <option value="chandpur">Chandpur</option>
-                                </select>
+                                <input type="text" 
+                                placeholder='Sender District'
+                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
+                                {...register('receiverDistrict')}/>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-gray-600 mb-1">Delivery Instruction</label>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Pickup Instruction</label>
                                 <textarea 
                                     rows="3"
-                                    placeholder="Delivery Instruction" 
+                                    placeholder="Pickup Instruction" 
+                                    {...register("pickupInstructionReceiver")}
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white resize-none"
                                 ></textarea>
                             </div>

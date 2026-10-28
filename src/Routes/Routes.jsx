@@ -11,7 +11,7 @@ import Loading from "../Components/Loading/Loading";
 import PrivateRoute from "./PrivateRoute";
 
 
-import serviceCentersData from "../Pages/Shared/Navbar/Navdata/servicesCenter.json";
+import SendAParcel from "../Pages/Shared/Send a percel/SendAParcel";
 
 const router = createBrowserRouter([
     {
@@ -45,7 +45,7 @@ const router = createBrowserRouter([
                 path:'/coverage',
                 element:<Coverage></Coverage>,
            
-                loader: () => serviceCentersData
+                loader: () =>fetch('/src/Pages/Shared/Navbar/Navdata/servicesCenter.json').then(res => res.json())
             },
             {
                 path:'/login',
@@ -58,7 +58,13 @@ const router = createBrowserRouter([
             {
                 path:'/test',
                 element:<Loading></Loading>
-            }
+            },
+            {
+                path:'/sendParcel',
+                element:<PrivateRoute><SendAParcel></SendAParcel></PrivateRoute>,
+                loader: () =>fetch('/src/Pages/Shared/Navbar/Navdata/servicesCenter.json').then(res => res.json())
+            },
+
         ]
     }
 ]);
