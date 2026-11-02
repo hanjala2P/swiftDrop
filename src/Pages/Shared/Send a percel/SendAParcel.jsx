@@ -1,5 +1,5 @@
 import { useForm, useWatch } from 'react-hook-form';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useNavigate } from 'react-router';
 import Swal from 'sweetalert2';
 import useAxiosSecure from '../../../Hooks/userAxiosSecure';
 import useAuth from '../../../Hooks/useAuth';
@@ -8,6 +8,7 @@ const SendAParcel = () => {
     const { register, handleSubmit, control, reset } = useForm();
     const { user } = useAuth();
     const axiosSecure = useAxiosSecure();
+    const navigate = useNavigate();
     
     const serviceCenters = useLoaderData();
     const allRegions = serviceCenters.map(c => c.region);
@@ -19,8 +20,7 @@ const SendAParcel = () => {
     const districtByRegion = region => {
         if (!region) return []; 
         const regionDistricts = serviceCenters.filter(c => c.region === region);
-        const districts = regionDistricts.map(d => d.district);
-        return districts;
+        return regionDistricts.map(d => d.district);
     };
    
     const handleSendParcel = data => {
@@ -48,46 +48,69 @@ const SendAParcel = () => {
             cost: cost,
             senderEmail: user?.email, 
             status: 'pending',
+            paymentStatus: 'unpaid',
             createdAt: new Date()
         };
 
-        // SweetAlert2 confirmation popup with custom colors
+        // SweetAlert2 confirmation popup with Payment options
         Swal.fire({
-            title: "Agree with the cost?",
-            text: `You will be charged ${cost} tk`,
-            icon: "warning",
+            title: "Confirm Parcel Booking?",
+            text: `Total Delivery Charge will be ${cost} TK. Would you like to pay now?`,
+            icon: "question",
+            showDenyButton: true,
             showCancelButton: true,
-            confirmButtonColor: "#D4ED31",
-            cancelButtonColor: "#0B1E1B",
-            confirmButtonText: "Yes, Take My Parcel",
+            confirmButtonText: "Yes, Pay Now",
+            denyButtonText: `Pay Later`,
+            cancelButtonText: "Cancel",
+            confirmButtonColor: "#CAEB66",
+            denyButtonColor: "#0B1E1B",
+            cancelButtonColor: "#d33",
             customClass: {
-                confirmButton: 'custom-confirm-btn'
+                confirmButton: 'text-[#0B1E1B] font-bold px-4 py-2 rounded-xl',
+                denyButton: 'text-white font-bold px-4 py-2 rounded-xl'
             }
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
+                // Option 1: User wants to Pay Now (Create Parcel -> Create Stripe Session -> Redirect)
+                try {
+                    const res = await axiosSecure.post('/parcels', parcelInfo);
+                    if (res.data.insertedId || res.data.acknowledged) {
+                        const parcelId = res.data.insertedId;
+                        
+                        // Call Stripe Checkout Session API
+                        const checkoutRes = await axiosSecure.post('/create-checkout-session', {
+                            parcelId: parcelId,
+                            parcelName: parcelInfo.parcelName || "Parcel Delivery",
+                            cost: cost,
+                            senderEmail: user?.email
+                        });
+
+                        if (checkoutRes.data?.url) {
+                            window.location.replace(checkoutRes.data.url);
+                        }
+                    }
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire("Error!", "Failed to initialize payment. Try again.", "error");
+                }
+            } else if (result.isDenied) {
+                // Option 2: User wants to Pay Later (Save parcel and go to My Parcels)
                 axiosSecure.post('/parcels', parcelInfo)
                     .then(res => {
                         if (res.data.insertedId || res.data.acknowledged) {
                             Swal.fire({
-                                title: "Success!",
-                                text: "Your parcel has been booked successfully.",
+                                title: "Booking Saved!",
+                                text: "Your parcel has been booked successfully. You can pay later from 'My Parcels'.",
                                 icon: "success",
-                                confirmButtonColor: "#D4ED31", 
-                                customClass: {
-                                    confirmButton: 'custom-confirm-btn' 
-                                }
+                                confirmButtonColor: "#CAEB66",
                             });
-                            // Form reset kore dewa hocche
                             reset();
+                            navigate('/dashboard/my-parcels');
                         }
                     })
                     .catch(error => {
                         console.error(error);
-                        Swal.fire({
-                            title: "Error!",
-                            text: "Something went wrong. Please try again.",
-                            icon: "error"
-                        });
+                        Swal.fire("Error!", "Something went wrong. Please try again.", "error");
                     });
             }
         });
@@ -210,18 +233,14 @@ const SendAParcel = () => {
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Sender Region</label>
                                 <select {...register('senderRegion')} className="select w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white" defaultValue="">
                                     <option value="" disabled>Pick a Region</option>
-                                    {
-                                        regions.map((r, i) => <option key={i} value={r}>{r}</option>)
-                                    }
+                                    {regions.map((r, i) => <option key={i} value={r}>{r}</option>)}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Sender District</label>
                                 <select {...register('senderDistrict')} className="select w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white" defaultValue="">
                                     <option value="" disabled>Pick a District</option>
-                                    {
-                                        districtByRegion(senderRegion).map((r, i) => <option key={i} value={r}>{r}</option>)
-                                    }
+                                    {districtByRegion(senderRegion).map((r, i) => <option key={i} value={r}>{r}</option>)}
                                 </select>
                             </div>
 
@@ -285,18 +304,14 @@ const SendAParcel = () => {
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Receiver Region</label>
                                 <select {...register('receiverRegion')} className="select w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white" defaultValue="">
                                     <option value="" disabled>Pick a Region</option>
-                                    {
-                                        regions.map((r, i) => <option key={i} value={r}>{r}</option>)
-                                    }
+                                    {regions.map((r, i) => <option key={i} value={r}>{r}</option>)}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Receiver District</label>
                                 <select {...register('receiverDistrict')} className="select w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white" defaultValue="">
                                     <option value="" disabled>Query District</option>
-                                    {
-                                        districtByRegion(receiverRegion).map((r, i) => <option key={i} value={r}>{r}</option>)
-                                    }
+                                    {districtByRegion(receiverRegion).map((r, i) => <option key={i} value={r}>{r}</option>)}
                                 </select>
                             </div>
 
