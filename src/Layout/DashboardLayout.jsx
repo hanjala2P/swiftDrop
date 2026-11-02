@@ -1,101 +1,174 @@
+import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
 import { 
   Home, 
   Package, 
   Settings, 
-  Menu, 
-  Truck 
+  Menu,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
+import { FaSwift } from "react-icons/fa";
+import { MdDashboard } from "react-icons/md";
+import useAuth from "../Hooks/useAuth";
 
 const DashboardLayout = () => {
+    const { user } = useAuth();
+    
+    // Manual click toggle state (Pin/Unpin sidebar)
+    const [isPinned, setIsPinned] = useState(false);
+    // Mouse hover state
+    const [isHovered, setIsHovered] = useState(false);
+    // Mobile drawer state
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+    const isExpanded = isPinned || isHovered;
+
     return (
-        <div className="drawer lg:drawer-open min-h-screen bg-gray-50">
-            {/* Drawer Toggle Input */}
-            <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
-            
+        <div className="min-h-screen bg-gray-50 flex">
+            {/* Mobile Sidebar Overlay Backdrop */}
+            {isMobileOpen && (
+                <div 
+                    onClick={() => setIsMobileOpen(false)}
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                />
+            )}
+
+            {/* Sidebar Section */}
+            <aside 
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-200 text-gray-700 shadow-sm transition-all duration-300 ease-in-out ${
+                    isMobileOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0"
+                } ${
+                    isExpanded ? "lg:w-64" : "lg:w-20"
+                }`}
+            >
+                
+                {/* Sidebar Brand/Logo Header */}
+                <div className={`p-5 flex items-center gap-3 border-b border-gray-100 h-20 ${!isExpanded && !isMobileOpen ? "lg:justify-center lg:px-2" : ""}`}>
+                    <FaSwift className='text-primary text-4xl lg:text-5xl shrink-0'/>
+                    {(isExpanded || isMobileOpen) && (
+                        <div className="overflow-hidden transition-all duration-200">
+                            <h3 className="text-lg lg:text-xl font-bold tracking-tight text-gray-900 truncate">
+                                Swift <span className='text-primary'>Drop</span>
+                            </h3>
+                            <p className="text-xs text-gray-400 truncate">{user?.displayName || "User"}</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Navigation Menu Items with Clear Contrast Colors */}
+                <ul className="menu p-3 w-full grow space-y-1.5 font-medium text-sm">
+                    <li>
+                        <Link 
+                            to="/" 
+                            onClick={() => setIsMobileOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-600 hover:bg-primary/15 hover:text-[#0B1E1B] font-medium ${
+                                !isExpanded && !isMobileOpen ? "lg:justify-center lg:px-2" : ""
+                            }`}
+                            title="Homepage"
+                        >
+                            <Home className="w-5 h-5 shrink-0" />
+                            {(isExpanded || isMobileOpen) && <span className="truncate">Homepage</span>}
+                        </Link>
+                    </li>
+
+                    <li>
+                        <NavLink 
+                            to="/dashboard/my-parcels" 
+                            onClick={() => setIsMobileOpen(false)}
+                            className={({ isActive }) => 
+                                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                                    !isExpanded && !isMobileOpen ? "lg:justify-center lg:px-2" : ""
+                                } ${
+                                    isActive 
+                                        ? "bg-[#0B1E1B] text-[#D4ED31] font-semibold shadow-sm" 
+                                        : "text-gray-600 hover:bg-primary/15 hover:text-[#0B1E1B]"
+                                }`
+                            }
+                            title="My Parcels"
+                        >
+                            <Package className="w-5 h-5 shrink-0" />
+                            {(isExpanded || isMobileOpen) && <span className="truncate">My Parcels</span>}
+                        </NavLink>
+                    </li>
+
+                    <li>
+                        <button 
+                            type="button"
+                            onClick={() => alert("Settings coming soon!")}
+                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-600 hover:bg-primary/15 hover:text-[#0B1E1B] w-full text-left cursor-pointer ${
+                                !isExpanded && !isMobileOpen ? "lg:justify-center lg:px-2" : ""
+                            }`}
+                            title="Settings"
+                        >
+                            <Settings className="w-5 h-5 shrink-0" />
+                            {(isExpanded || isMobileOpen) && <span className="truncate">Settings</span>}
+                        </button>
+                    </li>
+                </ul>
+
+                {/* Sidebar Footer Info */}
+                <div className="p-4 border-t border-gray-100 text-xs text-gray-400 text-center truncate">
+                    {!isExpanded && !isMobileOpen ? "v1" : "SwiftDrop v1.0.0"}
+                </div>
+            </aside>
+
             {/* Main Content Area */}
-            <div className="drawer-content flex flex-col min-h-screen overflow-y-auto">
+            <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
                 {/* Top Navbar */}
-                <nav className="navbar w-full bg-white border-b border-gray-200 px-4 shadow-xs sticky top-0 z-30">
-                    <div className="flex-none lg:hidden">
-                        <label htmlFor="my-drawer-4" aria-label="open sidebar" className="btn btn-square btn-ghost">
+                <nav className="navbar w-full bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 h-20 shadow-xs sticky top-0 z-30">
+                    <div className="flex items-center gap-2">
+                        {/* Mobile Toggle Button */}
+                        <button 
+                            type="button"
+                            onClick={() => setIsMobileOpen(!isMobileOpen)}
+                            className="btn btn-square btn-ghost lg:hidden cursor-pointer"
+                        >
                             <Menu className="w-5 h-5 text-gray-700" />
-                        </label>
+                        </button>
+
+                        {/* Desktop Pin/Unpin Toggle Button */}
+                        <button 
+                            type="button"
+                            onClick={() => setIsPinned(!isPinned)}
+                            className="hidden lg:flex btn btn-square btn-ghost text-gray-700 hover:bg-primary/15 hover:text-[#0B1E1B] rounded-xl cursor-pointer transition-transform duration-200"
+                            title={isPinned ? "Unpin Sidebar" : "Pin Sidebar Expanded"}
+                        >
+                            {isPinned ? (
+                                <ChevronLeft className="w-5 h-5 transition-transform duration-300" />
+                            ) : (
+                                <ChevronRight className="w-5 h-5 transition-transform duration-300" />
+                            )}
+                        </button>
                     </div>
-                    <div className="flex-1 px-2 font-heading font-bold text-lg text-[#0B1E1B] flex items-center gap-2">
-                        <Truck className="w-6 h-6 text-[#D4ED31] fill-current" />
-                        <span>SwiftDrop Dashboard</span>
+                    
+                    {/* Dashboard Title Header */}
+                    <div className="flex-1 px-4 flex items-center gap-3">
+                        <div className="p-2 bg-primary/15 rounded-xl">
+                            <MdDashboard className="text-2xl lg:text-3xl text-primary" />
+                        </div>
+                        <div>
+                            <div className="flex-1 px-2 font-heading font-bold text-lg text-[#0B1E1B] flex items-center gap-2">
+                                <span className="text-base lg:text-xl font-extrabold tracking-tight text-gray-900">
+                                    SwiftDrop
+                                </span>
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-[#0B1E1B] uppercase tracking-wider">
+                                    Workspace
+                                </span>
+                            </div>
+                            <p className="text-xs text-gray-500 hidden sm:block">
+                                Manage your shipments and delivery operations seamlessly.
+                            </p>
+                        </div>
                     </div>
                 </nav>
 
                 {/* Dynamic Page Content */}
-                <main className="flex-1 p-6 lg:p-8 bg-gray-50">
+                <main className="flex-1 p-4 md:p-6 lg:p-8 bg-gray-50">
                     <Outlet />
                 </main>
-            </div>
-
-            {/* Sidebar Drawer Side */}
-            <div className="drawer-side z-40">
-                <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
-                
-                <div className="flex min-h-full flex-col bg-white border-r border-gray-200 w-64 text-gray-700 shadow-sm">
-                    
-                    {/* Sidebar Brand/Logo Header */}
-                    <div className="p-6 flex items-center gap-3 border-b border-gray-100">
-                        <div className="w-10 h-10 rounded-xl bg-[#0B1E1B] flex items-center justify-center text-[#D4ED31] font-bold">
-                            SD
-                        </div>
-                        <div>
-                            <h2 className="font-heading font-bold text-[#0B1E1B] text-base">SwiftDrop</h2>
-                            <p className="text-xs text-gray-400">User Dashboard</p>
-                        </div>
-                    </div>
-
-                    {/* Navigation Menu Items */}
-                    <ul className="menu p-4 w-full grow space-y-1.5 font-medium text-sm">
-                        <li>
-                            <Link 
-                                to="/" 
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition-all text-gray-600 hover:text-gray-900"
-                            >
-                                <Home className="w-5 h-5" />
-                                <span>Homepage</span>
-                            </Link>
-                        </li>
-
-                        <li>
-                            <NavLink 
-                                to="/dashboard/my-parcels" 
-                                className={({ isActive }) => 
-                                    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                                        isActive 
-                                            ? "bg-[#0B1E1B] text-[#D4ED31] font-semibold shadow-sm" 
-                                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                                    }`
-                                }
-                            >
-                                <Package className="w-5 h-5" />
-                                <span>My Parcels</span>
-                            </NavLink>
-                        </li>
-
-                        <li>
-                            <button 
-                                onClick={() => alert("Settings coming soon!")}
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition-all text-gray-600 hover:text-gray-900 w-full text-left cursor-pointer"
-                            >
-                                <Settings className="w-5 h-5" />
-                                <span>Settings</span>
-                            </button>
-                        </li>
-                    </ul>
-
-                    {/* Sidebar Footer Info */}
-                    <div className="p-4 border-t border-gray-100 text-xs text-gray-400 text-center">
-                        SwiftDrop v1.0.0
-                    </div>
-
-                </div>
             </div>
         </div>
     );
