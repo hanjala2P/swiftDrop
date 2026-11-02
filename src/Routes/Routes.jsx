@@ -10,10 +10,13 @@ import Register from "../Pages/Auth/Regsiter/Register";
 import Loading from "../Components/Loading/Loading";
 import PrivateRoute from "./PrivateRoute";
 
-
 import SendAParcel from "../Pages/Shared/Send a percel/SendAParcel";
 import DashboardLayout from "../Layout/DashboardLayout";
 import MyParcels from "../Pages/Dashboard/My-parcels/MyParcels";
+import Payment from "../Pages/Dashboard/My-parcels/Paymnet/Payment";
+import PaymentSuccess from "../Pages/Dashboard/My-parcels/Paymnet/PaymentSuccess";
+import PaymentCancel from "../Pages/Dashboard/My-parcels/Paymnet/paymentCancel";
+
 
 const router = createBrowserRouter([
     {
@@ -46,7 +49,6 @@ const router = createBrowserRouter([
             {
                 path:'/coverage',
                 element:<Coverage></Coverage>,
-           
                 loader: () =>fetch('/src/Pages/Shared/Navbar/Navdata/servicesCenter.json').then(res => res.json())
             },
             {
@@ -66,7 +68,6 @@ const router = createBrowserRouter([
                 element:<PrivateRoute><SendAParcel></SendAParcel></PrivateRoute>,
                 loader: () =>fetch('/src/Pages/Shared/Navbar/Navdata/servicesCenter.json').then(res => res.json())
             },
-
         ]
     },
     {
@@ -76,7 +77,19 @@ const router = createBrowserRouter([
             {
               path:'my-parcels', 
               element:<MyParcels></MyParcels>
-            }
+            },
+            {
+                path:'payment/:parcelId',
+                element:<Payment></Payment> ,
+            },
+            {
+                path:'payment-success',
+                element:<PaymentSuccess></PaymentSuccess>
+            },
+            {
+                path:'payment-cancelled',
+                element:<PaymentCancel></PaymentCancel>
+            },
         ]
     }
 ]);

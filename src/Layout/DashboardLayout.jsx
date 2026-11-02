@@ -4,7 +4,6 @@ import {
   Package, 
   Settings, 
   Menu, 
-  LayoutDashboard, 
   Truck 
 } from "lucide-react";
 
@@ -15,7 +14,7 @@ const DashboardLayout = () => {
             <input id="my-drawer-4" type="checkbox" className="drawer-toggle" />
             
             {/* Main Content Area */}
-            <div className="drawer-content flex flex-col">
+            <div className="drawer-content flex flex-col min-h-screen overflow-y-auto">
                 {/* Top Navbar */}
                 <nav className="navbar w-full bg-white border-b border-gray-200 px-4 shadow-xs sticky top-0 z-30">
                     <div className="flex-none lg:hidden">
@@ -30,7 +29,7 @@ const DashboardLayout = () => {
                 </nav>
 
                 {/* Dynamic Page Content */}
-                <main className="flex-1 p-6 lg:p-8">
+                <main className="flex-1 p-6 lg:p-8 bg-gray-50">
                     <Outlet />
                 </main>
             </div>
@@ -83,7 +82,7 @@ const DashboardLayout = () => {
                         <li>
                             <button 
                                 onClick={() => alert("Settings coming soon!")}
-                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition-all text-gray-600 hover:text-gray-900 w-full text-left"
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 transition-all text-gray-600 hover:text-gray-900 w-full text-left cursor-pointer"
                             >
                                 <Settings className="w-5 h-5" />
                                 <span>Settings</span>
@@ -91,7 +90,7 @@ const DashboardLayout = () => {
                         </li>
                     </ul>
 
-                    {/* Sidebar Footer Info (Optional) */}
+                    {/* Sidebar Footer Info */}
                     <div className="p-4 border-t border-gray-100 text-xs text-gray-400 text-center">
                         SwiftDrop v1.0.0
                     </div>
@@ -101,7 +100,5 @@ const DashboardLayout = () => {
         </div>
     );
 };
-
-NavLink.defaultProps = {}; 
 
 export default DashboardLayout;

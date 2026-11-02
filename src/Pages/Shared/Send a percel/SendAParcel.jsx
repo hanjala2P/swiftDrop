@@ -1,14 +1,13 @@
 import { useForm, useWatch } from 'react-hook-form';
-import { useLoaderData, useNavigate } from 'react-router';
+import { useLoaderData } from 'react-router';
 import Swal from 'sweetalert2';
 import useAxiosSecure from '../../../Hooks/userAxiosSecure';
 import useAuth from '../../../Hooks/useAuth';
 
 const SendAParcel = () => {
-    const { register, handleSubmit, control } = useForm();
+    const { register, handleSubmit, control, reset } = useForm();
     const { user } = useAuth();
     const axiosSecure = useAxiosSecure();
-    const navigate = useNavigate();
     
     const serviceCenters = useLoaderData();
     const allRegions = serviceCenters.map(c => c.region);
@@ -43,15 +42,16 @@ const SendAParcel = () => {
                 cost = minCharge + extraCharge;
             }
         }
-
         
         const parcelInfo = {
             ...data,
-            cost,
+            cost: cost,
+            senderEmail: user?.email, 
             status: 'pending',
             createdAt: new Date()
         };
 
+        // SweetAlert2 confirmation popup with custom colors
         Swal.fire({
             title: "Agree with the cost?",
             text: `You will be charged ${cost} tk`,
@@ -76,9 +76,9 @@ const SendAParcel = () => {
                                 customClass: {
                                     confirmButton: 'custom-confirm-btn' 
                                 }
-                            }).then(() => {
-                                navigate('/dashboard/my-parcels');
                             });
+                            // Form reset kore dewa hocche
+                            reset();
                         }
                     })
                     .catch(error => {
@@ -293,7 +293,7 @@ const SendAParcel = () => {
                             <div>
                                 <label className="block text-xs font-semibold text-gray-600 mb-1">Receiver District</label>
                                 <select {...register('receiverDistrict')} className="select w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white" defaultValue="">
-                                    <option value="" disabled>Pick a District</option>
+                                    <option value="" disabled>Query District</option>
                                     {
                                         districtByRegion(receiverRegion).map((r, i) => <option key={i} value={r}>{r}</option>)
                                     }
