@@ -1,8 +1,29 @@
-import React from 'react';
-import { Link } from 'react-router';
+import React, { useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router';
 import { CheckCircle2, ArrowRight, Package, LayoutDashboard } from 'lucide-react';
+import useAxiosSecure from '../../../../Hooks/userAxiosSecure';
 
 const PaymentSuccess = () => {
+    // 1. Array destructuring fix kora holo ([] bracket hobe)
+    const [searchParams] = useSearchParams();
+    const sessionId = searchParams.get('session_id');
+    const axiosSecure = useAxiosSecure();
+    
+    console.log("Session ID:", sessionId);
+
+    useEffect(() => {
+        if (sessionId) {
+            // 2. URL-er spelling 'sessio_id' theke 'session_id' kore dewa holo
+            axiosSecure.patch(`/payment-success?session_id=${sessionId}`)
+                .then(res => {
+                    console.log("Payment update response:", res.data);
+                })
+                .catch(err => {
+                    console.error("Payment update failed:", err);
+                });
+        }
+    }, [sessionId, axiosSecure]);
+
     return (
         <div className="max-w-md mx-auto my-16 px-4">
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 text-center space-y-6">
