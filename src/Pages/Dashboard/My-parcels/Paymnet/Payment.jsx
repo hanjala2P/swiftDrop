@@ -3,41 +3,59 @@ import { useParams } from "react-router";
 import useAxiosSecure from "../../../../Hooks/userAxiosSecure";
 import Loading from "../../../../Components/Loading/Loading";
 import { ShieldCheck, ArrowRight, ReceiptText, Mail, Tag, DollarSign } from "lucide-react";
+import { useState } from "react";
 
 const Payment = () => {
     const { parcelId } = useParams();
     const axiosSecure = useAxiosSecure();
+   
 
-    const { data: parcel, isLoading } = useQuery({
+    const { data: parcel, isLoading, error } = useQuery({
         queryKey: ['parcel', parcelId],
         queryFn: async () => {
             const res = await axiosSecure.get(`/parcels/${parcelId}`);
             return res.data;
-        }
+        },
+        enabled: !!parcelId // Ensures query only runs when parcelId is available
     });
 
     const handlePayment = async () => {
         try {
+            if (!parcel) {
+                console.error("Parcel data not loaded yet.");
+                return;
+            }
+
             const paymentInfo = {
                 cost: parcel.cost,
                 parcelId: parcel._id,
-                senderEmail: parcel.senderEmail,
-                parcelName: parcel.parcelName
+                senderEmail: parcel.senderEmail || parcel.email,
+                parcelName: parcel.parcelName || "Parcel Delivery"
             };
             
+            console.log("Sending Payment Info:", paymentInfo);
             const res = await axiosSecure.post('/create-checkout-session', paymentInfo);
 
-            
             if (res.data?.url) {
                 window.location.replace(res.data.url);
+            } else {
+                console.error("Stripe session URL not found in response:", res.data);
             }
         } catch (error) {
-            console.error("Payment Error:", error);
+            console.error("Payment Error:", error.response?.data || error.message);
         }
     };
 
     if (isLoading) {
         return <Loading></Loading>;
+    }
+
+    if (error || !parcel) {
+        return (
+            <div className="flex justify-center items-center min-h-[50vh] text-red-500 font-medium">
+                Failed to load parcel details for payment.
+            </div>
+        );
     }
 
     return (
@@ -64,7 +82,7 @@ const Payment = () => {
                             <Tag className="w-4 h-4 text-gray-400" />
                             <span className="text-sm font-medium">Parcel Name</span>
                         </div>
-                        <span className="text-sm font-bold text-gray-900">{parcel?.parcelName}</span>
+                        <span className="text-sm font-bold text-gray-900">{parcel?.parcelName || "N/A"}</span>
                     </div>
 
                     {/* Sender Email */}
@@ -73,7 +91,7 @@ const Payment = () => {
                             <Mail className="w-4 h-4 text-gray-400" />
                             <span className="text-sm font-medium">Sender Email</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-800">{parcel?.senderEmail}</span>
+                        <span className="text-sm font-medium text-gray-800">{parcel?.senderEmail || parcel?.email || "N/A"}</span>
                     </div>
 
                     {/* Total Amount */}
@@ -82,7 +100,7 @@ const Payment = () => {
                             <DollarSign className="w-5 h-5 text-primary" />
                             <span className="text-sm font-bold">Total Payable</span>
                         </div>
-                        <span className="text-lg font-black text-gray-900">{parcel?.cost} TK</span>
+                        <span className="text-lg font-black text-gray-900">{parcel?.cost || 0} TK</span>
                     </div>
 
                     {/* Security Notice */}

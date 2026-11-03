@@ -1,28 +1,38 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { CheckCircle2, ArrowRight, Package, LayoutDashboard } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Package, LayoutDashboard, Copy, Check } from 'lucide-react';
 import useAxiosSecure from '../../../../Hooks/userAxiosSecure';
 
 const PaymentSuccess = () => {
-    // 1. Array destructuring fix kora holo ([] bracket hobe)
     const [searchParams] = useSearchParams();
     const sessionId = searchParams.get('session_id');
+    const [paymentInfo, setPaymentInfo] = useState({ transectionId: '', trackingId: '' });
+    const [copied, setCopied] = useState(false);
     const axiosSecure = useAxiosSecure();
     
     console.log("Session ID:", sessionId);
 
     useEffect(() => {
         if (sessionId) {
-            // 2. URL-er spelling 'sessio_id' theke 'session_id' kore dewa holo
             axiosSecure.patch(`/payment-success?session_id=${sessionId}`)
                 .then(res => {
                     console.log("Payment update response:", res.data);
+                    setPaymentInfo({
+                        transectionId: res.data?.transectionId || res.data?.paymentInfo?.transectionId || 'N/A',
+                        trackingId: res.data?.trackingId || 'N/A'
+                    });
                 })
                 .catch(err => {
-                    console.error("Payment update failed:", err);
+                    console.error("Payment update failed:", err.response?.data || err.message);
                 });
         }
     }, [sessionId, axiosSecure]);
+
+    const handleCopy = (text) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     return (
         <div className="max-w-md mx-auto my-16 px-4">
@@ -39,6 +49,33 @@ const PaymentSuccess = () => {
                     <p className="text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
                         Your transaction has been completed successfully. Your parcel is now confirmed for delivery.
                     </p>
+                </div>
+
+                {/* Transaction & Tracking Details Box */}
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-left space-y-3 text-xs">
+                    <div>
+                        <span className="text-gray-400 block font-medium">Transaction ID:</span>
+                        <span className="font-semibold text-gray-800 break-all">
+                            {paymentInfo.transectionId || "Processing..."}
+                        </span>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200/60 flex items-center justify-between">
+                        <div>
+                            <span className="text-gray-400 block font-medium">Tracking ID:</span>
+                            <span className="font-bold text-emerald-700 text-sm">
+                                {paymentInfo.trackingId || "Generating..."}
+                            </span>
+                        </div>
+                        {paymentInfo.trackingId && paymentInfo.trackingId !== 'N/A' && (
+                            <button 
+                                onClick={() => handleCopy(paymentInfo.trackingId)}
+                                className="btn btn-xs bg-white border border-gray-200 hover:bg-gray-100 text-gray-600 flex items-center gap-1"
+                            >
+                                {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                {copied ? "Copied" : "Copy"}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 {/* Action Buttons */}

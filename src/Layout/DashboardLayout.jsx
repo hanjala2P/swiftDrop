@@ -1,15 +1,13 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
 import { 
-  Home, 
-  Package, 
-  Settings, 
   Menu,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
 import { FaSwift } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
+import { FiHome, FiPackage, FiCreditCard, FiSettings } from "react-icons/fi";
 import useAuth from "../Hooks/useAuth";
 
 const DashboardLayout = () => {
@@ -69,7 +67,7 @@ const DashboardLayout = () => {
                             }`}
                             title="Homepage"
                         >
-                            <Home className="w-5 h-5 shrink-0" />
+                            <FiHome className="text-lg shrink-0" />
                             {(isExpanded || isMobileOpen) && <span className="truncate">Homepage</span>}
                         </Link>
                     </li>
@@ -89,8 +87,27 @@ const DashboardLayout = () => {
                             }
                             title="My Parcels"
                         >
-                            <Package className="w-5 h-5 shrink-0" />
+                            <FiPackage className="text-lg shrink-0" />
                             {(isExpanded || isMobileOpen) && <span className="truncate">My Parcels</span>}
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink 
+                            to="/dashboard/payment-history" 
+                            onClick={() => setIsMobileOpen(false)}
+                            className={({ isActive }) => 
+                                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                                    !isExpanded && !isMobileOpen ? "lg:justify-center lg:px-2" : ""
+                                } ${
+                                    isActive 
+                                        ? "bg-[#0B1E1B] text-[#D4ED31] font-semibold shadow-sm" 
+                                        : "text-gray-600 hover:bg-primary/15 hover:text-[#0B1E1B]"
+                                }`
+                            }
+                            title="Payment History"
+                        >
+                            <FiCreditCard className="text-lg shrink-0" />
+                            {(isExpanded || isMobileOpen) && <span className="truncate">Payment History</span>}
                         </NavLink>
                     </li>
 
@@ -103,7 +120,7 @@ const DashboardLayout = () => {
                             }`}
                             title="Settings"
                         >
-                            <Settings className="w-5 h-5 shrink-0" />
+                            <FiSettings className="text-lg shrink-0" />
                             {(isExpanded || isMobileOpen) && <span className="truncate">Settings</span>}
                         </button>
                     </li>
