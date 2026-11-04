@@ -17,6 +17,7 @@ import Payment from "../Pages/Dashboard/My-parcels/Paymnet/Payment";
 import PaymentSuccess from "../Pages/Dashboard/My-parcels/Paymnet/PaymentSuccess";
 import PaymentCancel from "../Pages/Dashboard/My-parcels/Paymnet/paymentCancel";
 import PaymentHistory from "../Pages/Dashboard/My-parcels/Paymnet/PaymentHistory";
+import ApproveRiders from "../Pages/Dashboard/ApproveRiders/ApproveRiders";
 
 
 const router = createBrowserRouter([
@@ -29,7 +30,8 @@ const router = createBrowserRouter([
             },
             {
                 path:'/be-a-rider',
-                element:<PrivateRoute><BeARider></BeARider></PrivateRoute>
+                element:<PrivateRoute><BeARider></BeARider></PrivateRoute>,
+                loader: () =>fetch('/src/Pages/Shared/Navbar/Navdata/servicesCenter.json').then(res => res.json())
             },
             {
                 path:'/pricing',
@@ -94,6 +96,10 @@ const router = createBrowserRouter([
             {
                 path:'payment-cancelled',
                 element:<PaymentCancel></PaymentCancel>
+            },
+            {
+                path:'approve-riders',
+                element:<ApproveRiders></ApproveRiders>
             },
         ]
     }

@@ -7,27 +7,29 @@ import { useForm } from 'react-hook-form';
 import useAuth from '../../../Hooks/useAuth';
 import GoogleSignIn from '../SocialLogin/GoogleSign';
 import axios from 'axios';
+import useAxiosSecure from '../../../Hooks/userAxiosSecure';
 
 const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [registerError, setRegisterError] = useState('');
+
     const { registerUser, updateUserProfile } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
+    const axiosSecure =useAxiosSecure()
  
     const { register, handleSubmit, formState: { errors } } = useForm();
 
     const handleRegister = async (data) => {
-        console.log(data);
-        const profileImg = data.photo?.[0]; // Safe check if photo exists
-       
+        setLoading(true);
+        setRegisterError('');
+
         try {
-        
-            const result = await registerUser(data.email, data.password);
-            console.log("Firebase User:", result.user);
-
             let photoURL = "";
-
-            
+            const profileImg = data.photo?.[0]; // Safe check if photo exists
+       
+            // Upload Image to ImgBB if provided
             if (profileImg) {
                 const formData = new FormData();
                 formData.append('image', profileImg); 
@@ -36,12 +38,29 @@ const Register = () => {
                 
                 const res = await axios.post(imgAPIURL, formData);
                 
-               
-                photoURL = res?.data?.data?.url || "";
-                console.log("Image Uploaded URL:", photoURL);
+                if (res?.data?.success) {
+                    photoURL = res.data.data.url;
+                    console.log("Image Uploaded URL:", photoURL);
+                }
             }
 
-            
+            // Register User in Firebase
+            const result = await registerUser(data.email, data.password);
+            console.log("Firebase User:", result.user);
+
+            // CREATE USER PROFILE IN DB
+            const userInfo={
+                email:data.email,
+                displayName:data.name,
+                photoURL: photoURL
+            }
+            axiosSecure.post('/users',userInfo).then( res =>{
+                if(res.data.insertedId){
+                    console.log('user created in the databse')
+                }
+            })
+
+            // Update User Profile
             const userProfile = {
                 displayName: data.name,
                 photoURL: photoURL
@@ -49,10 +68,13 @@ const Register = () => {
 
             await updateUserProfile(userProfile);
             console.log("User profile updated successfully");
-            navigate(location?.state || '/')
+            navigate(location?.state || '/');
 
         } catch (error) {
             console.error("Registration or Upload Error:", error.response?.data || error.message);
+            setRegisterError(error.response?.data?.error?.message || error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -80,25 +102,31 @@ const Register = () => {
                         </p>
                     </div>
 
-                    {/* Profile Picture Upload Avatar Option */}
-                    <div className="mb-6 flex items-center gap-4">
-                        <div className="relative w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden group cursor-pointer">
-                            <FiUserPlus className="text-xl text-gray-400 group-hover:text-gray-600" />
-                            <input 
-                                type="file" 
-                                {...register('photo',{required:true})} 
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                title="Upload Profile Picture"
-                            />
-                        </div>
-                        <div className="text-xs text-gray-500 font-medium">
-                            <span>Upload Profile Photo</span>
-                            <p className="text-[10px] text-gray-400">(Optional)</p>
-                        </div>
-                    </div>
-
                     <form onSubmit={handleSubmit(handleRegister)} className="space-y-4">
                         
+                        {/* Profile Picture Upload Avatar Option */}
+                        <div className="mb-2">
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">
+                                Profile Photo <span className="text-gray-400 font-normal">(Optional)</span>
+                            </label>
+                            <div className="flex items-center gap-4">
+                                <div className="relative w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 overflow-hidden group cursor-pointer">
+                                    <FiUserPlus className="text-xl text-gray-400 group-hover:text-gray-600" />
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        {...register('photo')} 
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                        title="Upload Profile Picture"
+                                    />
+                                </div>
+                                <div className="text-xs text-gray-500 font-medium">
+                                    <span>Upload Profile Photo</span>
+                                    <p className="text-[10px] text-gray-400">JPG, PNG format</p>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Name Field */}
                         <div>
                             <label className="block text-xs font-semibold text-gray-600 mb-1">Name</label>
@@ -120,7 +148,7 @@ const Register = () => {
                                 placeholder="Email" 
                                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#0B1E1B] focus:outline-none text-sm text-gray-700 bg-white"
                             />
-                            {errors.email?.type === 'required' && <p className='text-red-600 text-xs mt-1'>Email is required</p>}
+                            {errors.email && <p className='text-red-600 text-xs mt-1'>Email is required</p>}
                         </div>
 
                         {/* Password Field with Toggle Icon */}
@@ -150,12 +178,20 @@ const Register = () => {
                             {errors.password?.type === 'pattern' && <p className='text-red-600 text-xs mt-1'>Password must include uppercase, lowercase & number.</p>}
                         </div>
 
+                        {/* Register Error Message */}
+                        {registerError && (
+                            <div className="bg-red-50 border border-red-200 text-red-600 text-xs p-3 rounded-xl">
+                                {registerError}
+                            </div>
+                        )}
+
                         {/* Register Button */}
                         <button 
                             type="submit" 
-                            className="w-full py-3.5 bg-[#D4ED31] hover:bg-[#c3db26] text-[#0B1E1B] font-heading font-semibold rounded-xl transition-all shadow-sm cursor-pointer mt-2"
+                            disabled={loading}
+                            className="w-full py-3.5 bg-[#D4ED31] hover:bg-[#c3db26] disabled:opacity-60 text-[#0B1E1B] font-heading font-semibold rounded-xl transition-all shadow-sm cursor-pointer mt-2"
                         >
-                            Register
+                            {loading ? 'Creating Account...' : 'Register'}
                         </button>
 
                         {/* Already have an account Login Link */}

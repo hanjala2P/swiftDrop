@@ -5,7 +5,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
-import { FaSwift } from "react-icons/fa";
+import { FaMotorcycle, FaSwift } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { FiHome, FiPackage, FiCreditCard, FiSettings } from "react-icons/fi";
 import useAuth from "../Hooks/useAuth";
@@ -108,6 +108,25 @@ const DashboardLayout = () => {
                         >
                             <FiCreditCard className="text-lg shrink-0" />
                             {(isExpanded || isMobileOpen) && <span className="truncate">Payment History</span>}
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink 
+                            to="/dashboard/approve-riders" 
+                            onClick={() => setIsMobileOpen(false)}
+                            className={({ isActive }) => 
+                                `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                                    !isExpanded && !isMobileOpen ? "lg:justify-center lg:px-2" : ""
+                                } ${
+                                    isActive 
+                                        ? "bg-[#0B1E1B] text-[#D4ED31] font-semibold shadow-sm" 
+                                        : "text-gray-600 hover:bg-primary/15 hover:text-[#0B1E1B]"
+                                }`
+                            }
+                            title="Payment History"
+                        >
+                            <FaMotorcycle className="text-lg shrink-0" />
+                            {(isExpanded || isMobileOpen) && <span className="truncate">Approve riders</span>}
                         </NavLink>
                     </li>
 

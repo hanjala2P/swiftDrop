@@ -9,14 +9,20 @@ const axiosSecure = axios.create({
 });
 
 const useAxiosSecure = () => {
-    const { user, logOut } = useAuth();
+    const { user, logOut } = useAuth(); 
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Request Interceptor: Attach Token
-        const reqInterceptor = axiosSecure.interceptors.request.use((config) => {
-            if (user?.accessToken) {
-                config.headers.Authorization = `Bearer ${user.accessToken}`;
+       
+        const reqInterceptor = axiosSecure.interceptors.request.use(async (config) => {
+            if (user) {
+                try {
+                    
+                    const token = await user.getIdToken(true);
+                    config.headers.Authorization = `Bearer ${token}`;
+                } catch (error) {
+                    console.error("Error getting Firebase token:", error);
+                }
             }
             return config;
         }, (error) => {
@@ -27,7 +33,7 @@ const useAxiosSecure = () => {
         const resInterceptor = axiosSecure.interceptors.response.use((response) => {
             return response;
         }, async (error) => {
-            const statusCode = error.response?.status; // Fixed from error.status to error.response?.status
+            const statusCode = error.response?.status;
 
             if (statusCode === 401 || statusCode === 403) {
                 try {
@@ -40,7 +46,6 @@ const useAxiosSecure = () => {
             return Promise.reject(error);
         });
 
-        // Cleanup Interceptors
         return () => {
             axiosSecure.interceptors.request.eject(reqInterceptor);
             axiosSecure.interceptors.response.eject(resInterceptor);
