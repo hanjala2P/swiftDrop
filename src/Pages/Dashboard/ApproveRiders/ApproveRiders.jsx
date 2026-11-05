@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useAxiosSecure from "../../../Hooks/userAxiosSecure";
-import { FaCheck } from "react-icons/fa";
+import { FaCheck, FaEye, FaUser, FaEnvelope, FaPhone, FaCalendarAlt, FaShieldAlt } from "react-icons/fa";
 import { FaTrashCan } from "react-icons/fa6";
 import Swal from "sweetalert2";
 
@@ -31,7 +31,6 @@ const ApproveRiders = () => {
                 if (res.data.modifiedCount) {
                     refetch();
                     Swal.fire({
-                    
                         icon: "success",
                         title: `Rider status is set to ${status}.`,
                         showConfirmButton: false,
@@ -47,6 +46,70 @@ const ApproveRiders = () => {
                     text: "Something went wrong!",
                 });
             });
+    };
+
+    // Handle View Click with a beautifully redesigned modal
+    const handleView = (rider) => {
+        const statusColor = 
+            rider.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 
+            rider.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-200' : 
+            'bg-amber-50 text-amber-600 border-amber-200';
+
+        Swal.fire({
+            title: `<div style="display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #F1F5F9; padding-bottom: 12px; text-align: left;">
+                        <div style="background: #0B1E1B; color: white; padding: 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 576 512" height="1.2em" width="1.2em" xmlns="http://www.w3.org/2000/svg"><path d="M528 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h480c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zm0 400H48V80h480v352zM224 256c35.3 0 64-28.7 64-64s-28.7-64-64-64-64 28.7-64 64 28.7 64 64 64zm136 125.8c0-32.7-26.8-59.8-59.8-59.8H147.8c-33 0-59.8 27.1-59.8 59.8v5.2h272v-5.2z"></path></svg>
+                        </div>
+                        <div>
+                            <span style="font-size: 18px; font-weight: 700; color: #0F172A; display: block;">Rider Profile</span>
+                            <span style="font-size: 12px; font-weight: 400; color: #64748B;">Detailed application information</span>
+                        </div>
+                    </div>`,
+            html: `
+                <div style="text-align: left; font-size: 14px; margin-top: 15px; display: flex; flex-direction: column; gap: 12px;">
+                    
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #F8FAFC; padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0;">
+                        <span style="color: #64748B; font-weight: 500; font-size: 13px;">Full Name</span>
+                        <span style="color: #0F172A; font-weight: 700;">${rider.name || "N/A"}</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #F8FAFC; padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0;">
+                        <span style="color: #64748B; font-weight: 500; font-size: 13px;">Email Address</span>
+                        <span style="color: #0F172A; font-weight: 600; word-break: break-all;">${rider.email}</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #F8FAFC; padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0;">
+                        <span style="color: #64748B; font-weight: 500; font-size: 13px;">Phone Number</span>
+                        <span style="color: #0F172A; font-weight: 600;">${rider.phone || "N/A"}</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #F8FAFC; padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0;">
+                        <span style="color: #64748B; font-weight: 500; font-size: 13px;">Application Status</span>
+                        <span style="text-transform: uppercase; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 9999px; border: 1px solid;" class="${statusColor}">${rider.status}</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #F8FAFC; padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0;">
+                        <span style="color: #64748B; font-weight: 500; font-size: 13px;">Applied On</span>
+                        <span style="color: #334155; font-weight: 600; font-size: 13px;">${rider.createdAt ? new Date(rider.createdAt).toLocaleString() : "N/A"}</span>
+                    </div>
+
+                </div>
+            `,
+            showCloseButton: true,
+            confirmButtonText: "Close Details",
+            confirmButtonColor: "#0B1E1B",
+            buttonsStyling: true,
+            customClass: {
+                popup: 'rounded-3xl shadow-2xl border border-gray-100 p-6',
+                confirmButton: 'rounded-xl px-6 py-2.5 font-bold text-xs tracking-wide shadow-md hover:opacity-90 transition-all cursor-pointer'
+            },
+            showClass: {
+                popup: 'animate__animated animate__fadeInDown animate__faster'
+            },
+            hideClass: {
+                popup: 'animate__animated animate__fadeOutUp animate__faster'
+            }
+        });
     };
 
     // Handle Approve Click
@@ -217,8 +280,16 @@ const ApproveRiders = () => {
                                 </p>
                             </div>
                         </div>
-
+                        
                         <div className="flex justify-end items-center pt-2 border-t border-gray-100 gap-2">
+                            <button
+                                onClick={() => handleView(rider)}
+                                className="btn btn-xs bg-[#0B1E1B] hover:bg-[#13322d] border-none text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer"
+                            >
+                                <FaEye className="w-3 h-3" />
+                                View
+                            </button>
+                            
                             <button
                                 onClick={() => handleApprove(rider)}
                                 disabled={rider.status !== "pending"}
@@ -228,7 +299,7 @@ const ApproveRiders = () => {
                                         : "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
                                 }`}
                             >
-                                <FaCheck />
+                                <FaCheck className="w-3 h-3" />
                                 {rider.status === "approved" ? "Approved" : "Approve"}
                             </button>
 
@@ -237,7 +308,7 @@ const ApproveRiders = () => {
                                 disabled={rider.status !== "pending"}
                                 className="btn btn-xs bg-red-500 hover:bg-red-600 border-none text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 cursor-pointer disabled:bg-gray-300"
                             >
-                                <FaTrashCan />
+                                <FaTrashCan className="w-3 h-3" />
                                 Reject
                             </button>
                         </div>
@@ -302,6 +373,15 @@ const ApproveRiders = () => {
                                     <td className="py-3.5 px-4">
                                         <div className="flex items-center justify-center gap-2">
                                             <button
+                                                onClick={() => handleView(rider)}
+                                                title="View Rider Details"
+                                                className="btn btn-sm bg-[#0B1E1B] hover:bg-[#13322d] border-none text-white font-bold px-3 rounded-xl shadow-xs flex items-center gap-1 text-xs h-8 min-h-0 cursor-pointer"
+                                            >
+                                                <FaEye className="w-3 h-3" />
+                                                View
+                                            </button>
+
+                                            <button
                                                 onClick={() => handleApprove(rider)}
                                                 disabled={rider.status !== "pending"}
                                                 title="Approve Rider"
@@ -316,10 +396,10 @@ const ApproveRiders = () => {
                                             </button>
 
                                             <button
-                                                onClick={() => handleDelete(rider)}
+                                                onClick={() => handleReject(rider)}
                                                 disabled={rider.status !== "pending"}
                                                 title="Reject Rider"
-                                                className="btn btn-sm bg-red-500 hover:bg-red-600 border-none text-white font-bold px-3 rounded-xl shadow-xs flex items-center gap-1 cursor-pointer text-xs h-8 min-h-0 disabled:bg-gray-300"
+                                                className="code btn btn-sm bg-red-500 hover:bg-red-600 border-none text-white font-bold px-3 rounded-xl shadow-xs flex items-center gap-1 cursor-pointer text-xs h-8 min-h-0 disabled:bg-gray-300"
                                             >
                                                 <FaTrashCan className="w-3 h-3" />
                                                 Reject
@@ -347,5 +427,7 @@ const ApproveRiders = () => {
         </div>
     );
 };
+
+export class ApproveRidersContainer {}
 
 export default ApproveRiders;
